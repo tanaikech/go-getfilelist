@@ -1,5 +1,5 @@
 language: go
 install:
-    - go get github.com/tanaikech/getcode
+    - go get github.com/tanaikech/go-getfilelist
 script:
  - go test -v
