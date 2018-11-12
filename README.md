@@ -226,21 +226,30 @@ import (
     getfilelist "github.com/tanaikech/go-getfilelist"
     "golang.org/x/oauth2"
     "golang.org/x/oauth2/google"
-    drive "google.golang.org/api/drive/v3"
+    "golang.org/x/oauth2/jwt"
 )
 
 // ServiceAccount : Use Service account
 func ServiceAccount(credentialFile string) *http.Client {
-    b, err := ioutil.ReadFile(credentialFile)
-    if err != nil {
-        log.Fatal(err)
-    }
-    config, err := google.JWTConfigFromJSON(b, drive.DriveFileScope)
-    if err != nil {
-        log.Fatal(err)
-    }
-    client := config.Client(oauth2.NoContext)
-    return client
+  b, err := ioutil.ReadFile(credentialFile)
+  if err != nil {
+    log.Fatal(err)
+  }
+  var c = struct {
+    Email      string `json:"client_email"`
+    PrivateKey string `json:"private_key"`
+  }{}
+  json.Unmarshal(b, &c)
+  config := &jwt.Config{
+    Email:      c.Email,
+    PrivateKey: []byte(c.PrivateKey),
+    Scopes: []string{
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+    },
+    TokenURL: google.JWTTokenURL,
+  }
+  client := config.Client(oauth2.NoContext)
+  return client
 }
 
 func main() {
