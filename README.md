@@ -460,4 +460,10 @@ If you have any questions and commissions for me, feel free to tell me.
 
     1. Initial release.
 
+* v1.0.1 (November 13, 2018)
+
+    1. From this version, in order to retrieve files and file information, "google.golang.org/api/drive/v3" is used.
+        - By this, when the values are retrieved from this library, users can use the structure of ``drive.File``.
+        - Script using this library can be seen at [goodls](https://github.com/tanaikech/goodls).
+
 [TOP](#TOP)
