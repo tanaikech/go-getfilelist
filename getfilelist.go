@@ -18,11 +18,12 @@ const (
 
 // BaseInfo : Base information
 type BaseInfo struct {
-	Client       *http.Client
-	CustomFields string
-	FolderID     string
-	SearchFolder *drive.File
-	Srv          *drive.Service
+	Client           *http.Client
+	CustomFields     string
+	FolderID         string
+	InputtedMimeType []string
+	SearchFolder     *drive.File
+	Srv              *drive.Service
 }
 
 // FileListDl : Retrieved file list.
@@ -86,8 +87,19 @@ func (b *BaseInfo) getFilesFromFolder(FolderTree *FolderTree) *FileListDl {
 		}
 		return b.CustomFields
 	}()
+	var mType string
+	if len(b.InputtedMimeType) > 0 {
+		for i, e := range b.InputtedMimeType {
+			if i == 0 {
+				mType = " and (mimeType='" + e + "'"
+				continue
+			}
+			mType += " or mimeType='" + e + "'"
+		}
+		mType += ")"
+	}
 	for i, id := range FolderTree.Folders {
-		q := "'" + id + "' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed=false"
+		q := "'" + id + "' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed=false" + mType
 		fm, err := b.getListLoop(q, fields)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -268,6 +280,12 @@ func Folder(folderID string) *BaseInfo {
 	b := &BaseInfo{
 		FolderID: folderID,
 	}
+	return b
+}
+
+// MimeType : Set mimeType
+func (b *BaseInfo) MimeType(mimeType []string) *BaseInfo {
+	b.InputtedMimeType = mimeType
 	return b
 }
 

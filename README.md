@@ -30,6 +30,7 @@ $ go get -u github.com/tanaikech/go-getfilelist
 | Do(*http.Client) | Retrieve file list with folder structure from a folder |
 | Folder(string) | Set folder ID. |
 | Fields(string) | Set fields of files.list of Drive API. |
+| MimeType([]string) | Set mimeType of files.list of Drive API. By this, you can retrieve files with the mimeType. |
 
 # Usage
 There are 3 patterns for using this library.
@@ -78,7 +79,7 @@ func main() {
     }
 
     // When you want to retrieve the file list in the folder,
-    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").Do(client)
+    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").MimeType([]string{"application/pdf", "image/png"}).Do(client)
 
     // When you want to retrieve only folder tree in the folder,
     res, err := getfilelist.Folder(folderID).GetFolderTree(client)
@@ -465,5 +466,10 @@ If you have any questions and commissions for me, feel free to tell me.
     1. From this version, in order to retrieve files and file information, "google.golang.org/api/drive/v3" is used.
         - By this, when the values are retrieved from this library, users can use the structure of ``drive.File``.
         - Script using this library can be seen at [goodls](https://github.com/tanaikech/goodls).
+
+* v1.0.2 (December 12, 2018)
+
+    1. New method for selecting mimeType was added. When this method is used, files with the specific mimeType in the specific folder can be retrieved.
+
 
 [TOP](#TOP)
