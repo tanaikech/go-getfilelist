@@ -124,7 +124,7 @@ func (b *BaseInfo) getFilesFromFolder(FolderTree *FolderTree) *FileListDl {
 // getList : For retrieving file list.
 func (b *BaseInfo) getList(ptoken, q, fields string) (*drive.FileList, error) {
 	f := []googleapi.Field{"nextPageToken", googleapi.Field(fields)}
-	r, err := b.Srv.Files.List().PageSize(1000).PageToken(ptoken).OrderBy("name").Q(q).Fields(f...).Do()
+	r, err := b.Srv.Files.List().PageSize(1000).PageToken(ptoken).OrderBy("name").Q(q).SupportsAllDrives(true).IncludeItemsFromAllDrives(true).Fields(f...).Do()
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +251,7 @@ func (b *BaseInfo) getFromAllFolders() *FolderTree {
 // getFileInf : Retrieve file infomation using Drive API.
 func (b *BaseInfo) getFileInf() error {
 	fields := []googleapi.Field{"createdTime,id,mimeType,modifiedTime,name,owners,parents,shared,webContentLink,webViewLink"}
-	res, err := b.Srv.Files.Get(b.FolderID).Fields(fields...).Do()
+	res, err := b.Srv.Files.Get(b.FolderID).SupportsAllDrives(true).Fields(fields...).Do()
 	if err != nil {
 		return err
 	}

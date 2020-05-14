@@ -1,63 +1,71 @@
-go-getfilelist
-=====
+# go-getfilelist
 
 [![Build Status](https://travis-ci.org/tanaikech/go-getfilelist.svg?branch=master)](https://travis-ci.org/tanaikech/go-getfilelist)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENCE)
 
 <a name="TOP"></a>
+
 # Overview
+
 This is a Golang library to retrieve the file list with the folder tree from the specific folder of Google Drive.
 
 # Description
+
 When I create applications for using Google Drive, I often retrieve a file list from a folder in the application. So far, I had created the script for retrieving a file list from a folder for each application. Recently, I thought that if there is the script for retrieving the file list with the folder tree from the folder of Google Drive as a library, it will be useful for me and other users. So I created this.
 
 ## Features
+
 - This library retrieves all files from a folder in Google Drive.
 - All files include the folder structure in Google Drive.
 - Only folder tree can be also retrieved.
 
 # Install
-You can install this using ``go get`` as follows.
 
-~~~bash
+You can install this using `go get` as follows.
+
+```bash
 $ go get -u github.com/tanaikech/go-getfilelist
-~~~
+```
 
 # Method
-| Method | Explanation |
-|:---|:---|
-| GetFolderTree(*http.Client) | Retrieve only folder structure from a folder |
-| Do(*http.Client) | Retrieve file list with folder structure from a folder |
-| Folder(string) | Set folder ID. |
-| Fields(string) | Set fields of files.list of Drive API. |
-| MimeType([]string) | Set mimeType of files.list of Drive API. By this, you can retrieve files with the mimeType. |
+
+| Method                       | Explanation                                                                                 |
+| :--------------------------- | :------------------------------------------------------------------------------------------ |
+| GetFolderTree(\*http.Client) | Retrieve only folder structure from a folder                                                |
+| Do(\*http.Client)            | Retrieve file list with folder structure from a folder                                      |
+| Folder(string)               | Set folder ID.                                                                              |
+| Fields(string)               | Set fields of files.list of Drive API.                                                      |
+| MimeType([]string)           | Set mimeType of files.list of Drive API. By this, you can retrieve files with the mimeType. |
 
 # Usage
+
 There are 3 patterns for using this library.
 
 ## 1. Use API key
+
 This is a sample script using API key. When you want to retrieve the API key, please do the following flow.
 
 1. Login to Google.
 2. Access to [https://console.cloud.google.com/?hl=en](https://console.cloud.google.com/?hl=en).
 3. Click select project at the right side of "Google Cloud Platform" of upper left of window.
 4. Click "NEW PROJECT"
-    1. Input "Project Name".
-    2. Click "CREATE".
-    3. Open the created project.
-    4. Click "Enable APIs and get credentials like keys".
-    5. Click "Library" at left side.
-    6. Input "Drive API" in "Search for APIs & Services".
-    7. Click "Google Drive API".
-    8. Click "ENABLE".
-    9. Back to [https://console.cloud.google.com/?hl=en](https://console.cloud.google.com/?hl=en).
-    10. Click "Enable APIs and get credentials like keys".
-    11. Click "Credentials" at left side.
-    12. Click "Create credentials" and select API key.
-    13. Copy the API key. You can use this API key.
+   1. Input "Project Name".
+   2. Click "CREATE".
+   3. Open the created project.
+   4. Click "Enable APIs and get credentials like keys".
+   5. Click "Library" at left side.
+   6. Input "Drive API" in "Search for APIs & Services".
+   7. Click "Google Drive API".
+   8. Click "ENABLE".
+   9. Back to [https://console.cloud.google.com/?hl=en](https://console.cloud.google.com/?hl=en).
+   10. Click "Enable APIs and get credentials like keys".
+   11. Click "Credentials" at left side.
+   12. Click "Create credentials" and select API key.
+   13. Copy the API key. You can use this API key.
 
 ### Sample script
-~~~
+
+```
 package main
 
 import (
@@ -90,17 +98,20 @@ func main() {
     }
     fmt.Println(res)
 }
-~~~
+```
 
 ### Note
+
 - **When you want to retrieve the file list from the folder using API key, the folder is required to be shared.**
-- You can modify the value of ``Fields()``. When this is not used, the default fields are used.
+- You can modify the value of `Fields()`. When this is not used, the default fields are used.
 
 ## 2. Use OAuth2
+
 Document of OAuth2 is [here](https://developers.google.com/identity/protocols/OAuth2).
 
 ### Sample script
-~~~
+
+```
 package main
 
 import (
@@ -203,18 +214,20 @@ func main() {
     }
     fmt.Println(res)
 }
-~~~
+```
 
 ### Note
-- Here, as a sample, the script of the authorization uses the script of [quickstart](https://developers.google.com/drive/api/v3/quickstart/go).
-- You can modify the value of ``Fields()``. When this is not used, the default fields are used.
 
+- Here, as a sample, the script of the authorization uses the script of [quickstart](https://developers.google.com/drive/api/v3/quickstart/go).
+- You can modify the value of `Fields()`. When this is not used, the default fields are used.
 
 ## 3. Use Service account
+
 Document of Service account is [here](https://developers.google.com/identity/protocols/OAuth2ServiceAccount).
 
 ### Sample script
-~~~
+
+```
 package main
 
 import (
@@ -269,31 +282,51 @@ func main() {
     }
     fmt.Println(res)
 }
-~~~
+```
 
 ### Note
-- You can modify the value of ``Fields()``. When this is not used, the default fields are used.
+
+- You can modify the value of `Fields()`. When this is not used, the default fields are used.
 
 # Values
+
 ![](images/downloadFolder_sample.png)
 
-As a sample, when the values are retrieved from above structure, the results of ``GetFolderTree()`` and ``Do()`` become as follows.
+As a sample, when the values are retrieved from above structure, the results of `GetFolderTree()` and `Do()` become as follows.
 
 ## Values retrieved by GetFolderTree()
-~~~
-res, err := getfilelist.Folder(folderID).GetFolderTree(client)
-~~~
 
-~~~json
+```
+res, err := getfilelist.Folder(folderID).GetFolderTree(client)
+```
+
+```json
 {
   "id": [
     ["folderIdOfsampleFolder1"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a","folderIdOfsampleFolder_2a_3a"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3a"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b"],
-    ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b","folderIdOfsampleFolder_2b_3b_4a"]
+    ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2a"],
+    ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2b"],
+    [
+      "folderIdOfsampleFolder1",
+      "folderIdOfsampleFolder_2a",
+      "folderIdOfsampleFolder_2a_3a"
+    ],
+    [
+      "folderIdOfsampleFolder1",
+      "folderIdOfsampleFolder_2b",
+      "folderIdOfsampleFolder_2b_3a"
+    ],
+    [
+      "folderIdOfsampleFolder1",
+      "folderIdOfsampleFolder_2b",
+      "folderIdOfsampleFolder_2b_3b"
+    ],
+    [
+      "folderIdOfsampleFolder1",
+      "folderIdOfsampleFolder_2b",
+      "folderIdOfsampleFolder_2b_3b",
+      "folderIdOfsampleFolder_2b_3b_4a"
+    ]
   ],
   "names": [
     "sampleFolder1",
@@ -314,14 +347,15 @@ res, err := getfilelist.Folder(folderID).GetFolderTree(client)
     "folderIdOfsampleFolder_2b_3b_4a"
   ]
 }
-~~~
+```
 
 ## Values retrieved by Do()
-~~~
-res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(client)
-~~~
 
-~~~json
+```
+res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(client)
+```
+
+```json
 {
   "searchedFolder": {
     "id": "###",
@@ -331,18 +365,37 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
     "createdTime": "2000-01-01T01:23:45.000Z",
     "modifiedTime": "2000-01-01T01:23:45.000Z",
     "webViewLink": "https://drive.google.com/drive/folders/###",
-    "owners": [{"displayName": "###","permissionId": "###","emailAddress": "###"}],
+    "owners": [
+      { "displayName": "###", "permissionId": "###", "emailAddress": "###" }
+    ],
     "shared": true
   },
   "folderTree": {
     "id": [
       ["folderIdOfsampleFolder1"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a","folderIdOfsampleFolder_2a_3a"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3a"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b"],
-      ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b","folderIdOfsampleFolder_2b_3b_4a"]
+      ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2a"],
+      ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2b"],
+      [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2a",
+        "folderIdOfsampleFolder_2a_3a"
+      ],
+      [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3a"
+      ],
+      [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3b"
+      ],
+      [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3b",
+        "folderIdOfsampleFolder_2b_3b_4a"
+      ]
     ],
     "names": [
       "sampleFolder1",
@@ -374,7 +427,7 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
       ]
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a"],
+      "folderTree": ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2a"],
       "files": [
         {
           "name": "Spreadsheet2",
@@ -383,7 +436,7 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
       ]
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b"],
+      "folderTree": ["folderIdOfsampleFolder1", "folderIdOfsampleFolder_2b"],
       "files": [
         {
           "name": "Spreadsheet4",
@@ -392,11 +445,19 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
       ]
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2a","folderIdOfsampleFolder_2a_3a"],
+      "folderTree": [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2a",
+        "folderIdOfsampleFolder_2a_3a"
+      ],
       "files": null
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3a"],
+      "folderTree": [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3a"
+      ],
       "files": [
         {
           "name": "Spreadsheet3",
@@ -405,11 +466,20 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
       ]
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b"],
+      "folderTree": [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3b"
+      ],
       "files": null
     },
     {
-      "folderTree": ["folderIdOfsampleFolder1","folderIdOfsampleFolder_2b","folderIdOfsampleFolder_2b_3b","folderIdOfsampleFolder_2b_3b_4a"],
+      "folderTree": [
+        "folderIdOfsampleFolder1",
+        "folderIdOfsampleFolder_2b",
+        "folderIdOfsampleFolder_2b_3b",
+        "folderIdOfsampleFolder_2b_3b_4a"
+      ],
       "files": [
         {
           "name": "Document1",
@@ -441,35 +511,46 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
   "totalNumberOfFiles": 10,
   "totalNumberOfFolders": 7
 }
-~~~
+```
 
------
+---
 
 <a name="Licence"></a>
+
 # Licence
+
 [MIT](LICENCE)
 
 <a name="Author"></a>
+
 # Author
+
 [Tanaike](https://tanaikech.github.io/about/)
 
 If you have any questions and commissions for me, feel free to tell me.
 
 <a name="Update_History"></a>
+
 # Update History
-* v1.0.0 (November 2, 2018)
 
-    1. Initial release.
+- v1.0.0 (November 2, 2018)
 
-* v1.0.1 (November 13, 2018)
+  1. Initial release.
 
-    1. From this version, in order to retrieve files and file information, "google.golang.org/api/drive/v3" is used.
-        - By this, when the values are retrieved from this library, users can use the structure of ``drive.File``.
-        - Script using this library can be seen at [goodls](https://github.com/tanaikech/goodls).
+- v1.0.1 (November 13, 2018)
 
-* v1.0.2 (December 12, 2018)
+  1. From this version, in order to retrieve files and file information, "google.golang.org/api/drive/v3" is used.
+     - By this, when the values are retrieved from this library, users can use the structure of `drive.File`.
+     - Script using this library can be seen at [goodls](https://github.com/tanaikech/goodls).
 
-    1. New method for selecting mimeType was added. When this method is used, files with the specific mimeType in the specific folder can be retrieved.
+- v1.0.2 (December 12, 2018)
 
+  1. New method for selecting mimeType was added. When this method is used, files with the specific mimeType in the specific folder can be retrieved.
+
+- v1.0.3 (May 14, 2020)
+
+  1. Shared drive got to be able to be used. The file list can be retrieved from both your Google Drive and the shared drive.
+
+     - For example, when the folder ID in the shared Drive is used `folderID` of `Folder(folderID)`, you can retrieve the file list from the folder in the shared Drive.
 
 [TOP](#TOP)
