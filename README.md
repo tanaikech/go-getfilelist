@@ -7,7 +7,7 @@
 
 # Overview
 
-This is a Golang library to retrieve the file list with the folder tree from the specific folder of Google Drive.
+This is a Golang library to retrieve the file list with the folder tree from the specific folder of own Google Drive and shared Drives.
 
 # Description
 
@@ -512,6 +512,16 @@ res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(clien
   "totalNumberOfFolders": 7
 }
 ```
+
+# For other languages
+
+As the libraries "GetFileList" for other languages, there are following libraries.
+
+- Golang: [https://github.com/tanaikech/go-getfilelist](https://github.com/tanaikech/go-getfilelist)
+- Google Apps Script: [https://github.com/tanaikech/FilesApp](https://github.com/tanaikech/FilesApp)
+- Javascript: [https://github.com/tanaikech/GetFileList_js](https://github.com/tanaikech/GetFileList_js)
+- Node.js: [https://github.com/tanaikech/node-getfilelist](https://github.com/tanaikech/node-getfilelist)
+- Python: [https://github.com/tanaikech/getfilelistpy](https://github.com/tanaikech/getfilelistpy)
 
 ---
 
