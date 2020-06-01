@@ -123,8 +123,15 @@ func (b *BaseInfo) getFilesFromFolder(FolderTree *FolderTree) *FileListDl {
 
 // getList : For retrieving file list.
 func (b *BaseInfo) getList(ptoken, q, fields string) (*drive.FileList, error) {
+	var err error
+	var r *drive.FileList
 	f := []googleapi.Field{"nextPageToken", googleapi.Field(fields)}
-	r, err := b.Srv.Files.List().PageSize(1000).PageToken(ptoken).OrderBy("name").Q(q).SupportsAllDrives(true).IncludeItemsFromAllDrives(true).Fields(f...).Do()
+	filesListCall := b.Srv.Files.List().PageSize(1000).PageToken(ptoken).OrderBy("name").Q(q).SupportsAllDrives(true).IncludeItemsFromAllDrives(true).Fields(f...)
+	if b.SearchFolder.DriveId != "" {
+		r, err = filesListCall.Corpora("drive").DriveId(b.SearchFolder.DriveId).Do()
+	} else {
+		r, err = filesListCall.Do()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -250,7 +257,7 @@ func (b *BaseInfo) getFromAllFolders() *FolderTree {
 
 // getFileInf : Retrieve file infomation using Drive API.
 func (b *BaseInfo) getFileInf() error {
-	fields := []googleapi.Field{"createdTime,id,mimeType,modifiedTime,name,owners,parents,shared,webContentLink,webViewLink"}
+	fields := []googleapi.Field{"createdTime,id,mimeType,modifiedTime,name,owners,parents,shared,webContentLink,webViewLink,driveId"}
 	res, err := b.Srv.Files.Get(b.FolderID).SupportsAllDrives(true).Fields(fields...).Do()
 	if err != nil {
 		return err
