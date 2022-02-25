@@ -4,7 +4,6 @@ package getfilelist
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 
@@ -18,7 +17,6 @@ const (
 
 // BaseInfo : Base information
 type BaseInfo struct {
-	Client           *http.Client
 	CustomFields     string
 	FolderID         string
 	InputtedMimeType []string
@@ -266,16 +264,6 @@ func (b *BaseInfo) getFileInf() error {
 	return nil
 }
 
-// init : Initialize
-func (b *BaseInfo) init() error {
-	srv, err := drive.New(b.Client)
-	if err != nil {
-		return err
-	}
-	b.Srv = srv
-	return nil
-}
-
 // Fields : Set fields for file list.
 func (b *BaseInfo) Fields(fields string) *BaseInfo {
 	b.CustomFields = fields
@@ -297,11 +285,8 @@ func (b *BaseInfo) MimeType(mimeType []string) *BaseInfo {
 }
 
 // GetFolderTree : Retrieve only folder tree under the specific folder.
-func (b *BaseInfo) GetFolderTree(client *http.Client) (*FolderTree, error) {
-	b.Client = client
-	if err := b.init(); err != nil {
-		return nil, err
-	}
+func (b *BaseInfo) GetFolderTree(service *drive.Service) (*FolderTree, error) {
+	b.Srv = service
 	if err := b.getFileInf(); err != nil {
 		return nil, err
 	}
@@ -314,11 +299,8 @@ func (b *BaseInfo) GetFolderTree(client *http.Client) (*FolderTree, error) {
 }
 
 // Do : Retrieve all file list and folder tree under the specific folder.
-func (b *BaseInfo) Do(client *http.Client) (*FileListDl, error) {
-	b.Client = client
-	if err := b.init(); err != nil {
-		return nil, err
-	}
+func (b *BaseInfo) Do(service *drive.Service) (*FileListDl, error) {
+	b.Srv = service
 	if err := b.getFileInf(); err != nil {
 		return nil, err
 	}
@@ -331,13 +313,10 @@ func (b *BaseInfo) Do(client *http.Client) (*FileListDl, error) {
 }
 
 // GetFolderTree : Retrieve only folder tree under root.
-func GetFolderTree(client *http.Client) (*FolderTree, error) {
+func GetFolderTree(service *drive.Service) (*FolderTree, error) {
 	b := &BaseInfo{
-		Client:   client,
+		Srv:      service,
 		FolderID: "root",
-	}
-	if err := b.init(); err != nil {
-		return nil, err
 	}
 	if err := b.getFileInf(); err != nil {
 		return nil, err
@@ -347,13 +326,10 @@ func GetFolderTree(client *http.Client) (*FolderTree, error) {
 }
 
 // Do : Retrieve all file list and folder tree under root.
-func Do(client *http.Client) (*FileListDl, error) {
+func Do(service *drive.Service) (*FileListDl, error) {
 	b := &BaseInfo{
-		Client:   client,
+		Srv:      service,
 		FolderID: "root",
-	}
-	if err := b.init(); err != nil {
-		return nil, err
 	}
 	if err := b.getFileInf(); err != nil {
 		return nil, err

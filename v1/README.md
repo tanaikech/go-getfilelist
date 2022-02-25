@@ -1,9 +1,11 @@
-# go-getfilelist v2
+# go-getfilelist v1
 
 [![Build Status](https://travis-ci.org/tanaikech/go-getfilelist.svg?branch=master)](https://travis-ci.org/tanaikech/go-getfilelist)
 [![MIT License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](LICENCE)
 
 <a name="top"></a>
+
+**This is the readme for version 1.**
 
 # Overview
 
@@ -27,19 +29,15 @@ You can install this using `go get` as follows.
 $ go get -u github.com/tanaikech/go-getfilelist
 ```
 
-- If "go get" cannot be used, please use this library with `GO111MODULE=on`.
-
-- If you want to use the version 1, please use [here](https://github.com/tanaikech/go-getfilelist/tree/master/v1).
-
 # Method
 
-| Method                         | Explanation                                                                                 |
-| :----------------------------- | :------------------------------------------------------------------------------------------ |
-| GetFolderTree(\*drive.Service) | Retrieve only folder structure from a folder                                                |
-| Do(\*drive.Service)            | Retrieve file list with folder structure from a folder                                      |
-| Folder(string)                 | Set folder ID.                                                                              |
-| Fields(string)                 | Set fields of files.list of Drive API.                                                      |
-| MimeType([]string)             | Set mimeType of files.list of Drive API. By this, you can retrieve files with the mimeType. |
+| Method                       | Explanation                                                                                 |
+| :--------------------------- | :------------------------------------------------------------------------------------------ |
+| GetFolderTree(\*http.Client) | Retrieve only folder structure from a folder                                                |
+| Do(\*http.Client)            | Retrieve file list with folder structure from a folder                                      |
+| Folder(string)               | Set folder ID.                                                                              |
+| Fields(string)               | Set fields of files.list of Drive API.                                                      |
+| MimeType([]string)           | Set mimeType of files.list of Drive API. By this, you can retrieve files with the mimeType. |
 
 # Usage
 
@@ -69,37 +67,32 @@ This is a sample script using API key. When you want to retrieve the API key, pl
 
 ### Sample script
 
-```go
+```
 package main
 
 import (
-    "context"
     "encoding/json"
     "fmt"
-    "log"
+    "net/http"
     "os"
 
     getfilelist "github.com/tanaikech/go-getfilelist"
-
-    "google.golang.org/api/drive/v3"
-    "google.golang.org/api/option"
+    "google.golang.org/api/googleapi/transport"
 )
 
 func main() {
     APIkey := "### API key ###" // Please set here
     folderID := "### folder ID ###" // Please set here
 
-    ctx := context.Background()
-    srv, err := drive.NewService(ctx, option.WithAPIKey(APIkey))
-    if err != nil {
-      log.Fatalf("Unable to retrieve Drive: %v", err)
+    client := &http.Client{
+        Transport: &transport.APIKey{Key: APIkey},
     }
 
     // When you want to retrieve the file list in the folder,
-    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").MimeType([]string{"application/pdf", "image/png"}).Do(srv)
+    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").MimeType([]string{"application/pdf", "image/png"}).Do(client)
 
     // When you want to retrieve only folder tree in the folder,
-    res, err := getfilelist.Folder(folderID).GetFolderTree(srv)
+    res, err := getfilelist.Folder(folderID).GetFolderTree(client)
 
     if err != nil {
         fmt.Println(err)
@@ -120,112 +113,102 @@ Document of OAuth2 is [here](https://developers.google.com/identity/protocols/OA
 
 ### Sample script
 
-```go
+```
 package main
 
 import (
-	"context"
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"log"
-	"net/http"
-	"os"
+    "context"
+    "encoding/json"
+    "fmt"
+    "io/ioutil"
+    "log"
+    "net/http"
+    "os"
 
-  getfilelist "github.com/tanaikech/go-getfilelist"
-
-	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
-	drive "google.golang.org/api/drive/v3"
-	"google.golang.org/api/option"
+    getfilelist "github.com/tanaikech/go-getfilelist"
+    "golang.org/x/oauth2"
+    "golang.org/x/oauth2/google"
+    drive "google.golang.org/api/drive/v3"
 )
 
-func getClient(config *oauth2.Config) *http.Client {
-	tokFile := "token.json"
-	tok, err := tokenFromFile(tokFile)
-	if err != nil {
-		tok = getTokenFromWeb(config)
-		saveToken(tokFile, tok)
-	}
-	return config.Client(context.Background(), tok)
+func getClient(ctx context.Context, config *oauth2.Config) *http.Client {
+    cacheFile := "token.json"
+    tok, err := tokenFromFile(cacheFile)
+    if err != nil {
+        tok = getTokenFromWeb(config)
+        saveToken(cacheFile, tok)
+    }
+    return config.Client(ctx, tok)
 }
 
 func getTokenFromWeb(config *oauth2.Config) *oauth2.Token {
-	authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
-	fmt.Printf("Go to the following link in your browser then type the "+
-		"authorization code: \n%v\n", authURL)
+    authURL := config.AuthCodeURL("state-token", oauth2.AccessTypeOffline)
+    fmt.Printf("Go to the following link in your browser then type the "+
+        "authorization code: \n%v\n", authURL)
 
-	var authCode string
-	if _, err := fmt.Scan(&authCode); err != nil {
-		log.Fatalf("Unable to read authorization code %v", err)
-	}
+    var code string
+    if _, err := fmt.Scan(&code); err != nil {
+        log.Fatalf("Unable to read authorization code %v", err)
+    }
 
-	tok, err := config.Exchange(context.TODO(), authCode)
-	if err != nil {
-		log.Fatalf("Unable to retrieve token from web %v", err)
-	}
-	return tok
+    tok, err := config.Exchange(oauth2.NoContext, code)
+    if err != nil {
+        log.Fatalf("Unable to retrieve token from web %v", err)
+    }
+    return tok
 }
 
 func tokenFromFile(file string) (*oauth2.Token, error) {
-	f, err := os.Open(file)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	tok := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(tok)
-	return tok, err
+    f, err := os.Open(file)
+    if err != nil {
+        return nil, err
+    }
+    t := &oauth2.Token{}
+    err = json.NewDecoder(f).Decode(t)
+    defer f.Close()
+    return t, err
 }
 
-func saveToken(path string, token *oauth2.Token) {
-	fmt.Printf("Saving credential file to: %s\n", path)
-	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0600)
-	if err != nil {
-		log.Fatalf("Unable to cache oauth token: %v", err)
-	}
-	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+func saveToken(file string, token *oauth2.Token) {
+    fmt.Printf("Saving credential file to: %s\n", file)
+    f, err := os.Create(file)
+    if err != nil {
+        log.Fatalf("Unable to cache oauth token: %v", err)
+    }
+    defer f.Close()
+    json.NewEncoder(f).Encode(token)
 }
 
 // OAuth2 : Use OAuth2
-func getService() *drive.Service {
-	ctx := context.Background()
-	b, err := ioutil.ReadFile("credentials.json")
-	if err != nil {
-		log.Fatalf("Unable to read client secret file: %v", err)
-	}
-
-	// If modifying these scopes, delete your previously saved token.json.
-	config, err := google.ConfigFromJSON(b, drive.DriveMetadataReadonlyScope)
-	if err != nil {
-		log.Fatalf("Unable to parse client secret file to config: %v", err)
-	}
-	client := getClient(config)
-
-	srv, err := drive.NewService(ctx, option.WithHTTPClient(client))
-	if err != nil {
-		log.Fatalf("Unable to retrieve Drive client: %v", err)
-	}
-	return srv
+func OAuth2() *http.Client {
+    b, err := ioutil.ReadFile("credentials.json")
+    if err != nil {
+        log.Fatalf("Unable to read client secret file: %v", err)
+    }
+    config, err := google.ConfigFromJSON(b, drive.DriveScriptsScope, drive.DriveScope)
+    if err != nil {
+        log.Fatalf("Unable to parse client secret file to config: %v", err)
+    }
+    client := getClient(context.Background(), config)
+    return client
 }
 
 func main() {
     folderID := "### folder ID ###" // Please set here
 
-    srv := getService()
+    client := OAuth2()
 
     // When you want to retrieve the file list in the folder,
-    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").Do(srv)
+    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").Do(client)
 
     // When you want to retrieve only folder tree in the folder,
-    res, err := getfilelist.Folder(folderID).GetFolderTree(srv)
+    res, err := getfilelist.Folder(folderID).GetFolderTree(client)
 
     // When you want to retrieve all file list under root of your Google Drive,
-    res, err := getfilelist.Do(srv)
+    res, err := getfilelist.Do(client)
 
     // When you want to retrieve only folder tree under root of your Google Drive,
-    res, err := getfilelist.GetFolderTree(srv)
+    res, err := getfilelist.GetFolderTree(client)
 
     if err != nil {
         fmt.Println(err)
@@ -246,37 +229,54 @@ Document of Service account is [here](https://developers.google.com/identity/pro
 
 ### Sample script
 
-```go
+```
 package main
 
 import (
-    "context"
     "encoding/json"
     "fmt"
+    "io/ioutil"
     "log"
-    "os"
+    "net/http"
 
     getfilelist "github.com/tanaikech/go-getfilelist"
-
-    "google.golang.org/api/drive/v3"
-    "google.golang.org/api/option"
+    "golang.org/x/oauth2"
+    "golang.org/x/oauth2/google"
+    "golang.org/x/oauth2/jwt"
 )
+
+// ServiceAccount : Use Service account
+func ServiceAccount(credentialFile string) *http.Client {
+  b, err := ioutil.ReadFile(credentialFile)
+  if err != nil {
+    log.Fatal(err)
+  }
+  var c = struct {
+    Email      string `json:"client_email"`
+    PrivateKey string `json:"private_key"`
+  }{}
+  json.Unmarshal(b, &c)
+  config := &jwt.Config{
+    Email:      c.Email,
+    PrivateKey: []byte(c.PrivateKey),
+    Scopes: []string{
+      "https://www.googleapis.com/auth/drive.metadata.readonly",
+    },
+    TokenURL: google.JWTTokenURL,
+  }
+  client := config.Client(oauth2.NoContext)
+  return client
+}
 
 func main() {
     folderID := "### folder ID ###" // Please set here
-    credentialFile := "###" // Please set your credential file of the service account.
-
-    ctx := context.Background()
-    srv, err := drive.NewService(ctx, option.WithCredentialsFile(credentialFile))
-    if err != nil {
-      log.Fatal(err)
-    }
+    client := ServiceAccount("credential.json") // Please set here
 
     // When you want to retrieve the file list in the folder,
-    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").Do(srv)
+    res, err := getfilelist.Folder(folderID).Fields("files(name,id)").Do(client)
 
     // When you want to retrieve only folder tree in the folder,
-    res, err := getfilelist.Folder(folderID).GetFolderTree(srv)
+    res, err := getfilelist.Folder(folderID).GetFolderTree(client)
 
     if err != nil {
         fmt.Println(err)
@@ -299,7 +299,7 @@ As a sample, when the values are retrieved from above structure, the results of 
 ## Values retrieved by GetFolderTree()
 
 ```
-res, err := getfilelist.Folder(folderID).GetFolderTree(srv)
+res, err := getfilelist.Folder(folderID).GetFolderTree(client)
 ```
 
 ```json
@@ -354,7 +354,7 @@ res, err := getfilelist.Folder(folderID).GetFolderTree(srv)
 ## Values retrieved by Do()
 
 ```
-res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(srv)
+res, err := getfilelist.Folder(folderID).Fields("files(name,mimeType)").Do(client)
 ```
 
 ```json
@@ -527,7 +527,7 @@ As the libraries "GetFileList" for other languages, there are following librarie
 
 ---
 
-<a name="licence"></a>
+<a name="Licence"></a>
 
 # Licence
 
@@ -568,9 +568,5 @@ If you have any questions and commissions for me, feel free to tell me.
 - v1.0.4 (June 1, 2020)
 
   1. When the file is retrieved from the shared drive, the parameter was not completed. This bug was removed.
-
-- v2.0.0 (February 25, 2022)
-
-  1. By changing the specification of methods, `drive.New()` and `transport.APIKey` were deprecated. By this, I updated the specification of this library as the version 2. When you are required to continue to use `drive.New()` and `transport.APIKey`, you can use them with the version 1. At version 1, `*http.Client` is given to this library. From version 2, `*drive.Service` is given instead of `*http.Client`. Please be careful this. You can see the sample script at the above.
 
 [TOP](#top)
